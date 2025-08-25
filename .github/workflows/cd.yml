@@ -11,10 +11,6 @@ permissions:
   id-token: write   # required for OIDC
   contents: read
 
-env:
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
-
 jobs:
   plan:
     runs-on: ubuntu-latest
@@ -24,8 +20,8 @@ jobs:
       - name: Configure AWS (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ env.ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::924917171175:role/GitHubActionsTerraformK8sObs
+          aws-region: us-east-1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -52,7 +48,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`diff" >> $GITHUB_STEP_SUMMARY
           sed -n '1,400p' terraform/tfplan.txt >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`"
 
   apply:
     needs: plan
@@ -65,7 +61,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}   # from the 'dev' environment
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}         # from the 'dev' environment
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -81,3 +77,4 @@ jobs:
 
       - name: Terraform Apply (from approved plan)
         run: terraform -chdir=terraform apply -input=false -auto-approve tfplan.binary
+
