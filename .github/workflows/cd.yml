@@ -15,6 +15,7 @@ permissions:
 jobs:
   plan:
     runs-on: ubuntu-latest
+    environment: dev
     steps:
       - uses: actions/checkout@v4
 
@@ -57,7 +58,7 @@ jobs:
   apply:
     needs: plan
     runs-on: ubuntu-latest
-    environment: dev   # <-- this creates the pending deployment that you must approve
+    environment: dev  
     steps:
       - uses: actions/checkout@v4
 
