@@ -18,7 +18,7 @@ data "aws_availability_zones" "available" {
 locals {
   azs = slice(data.aws_availability_zones.available.names, 0, 2)
 }
-
+##
 resource "aws_vpc" "this" {
     cidr_block = local.vpc_cidr
 
