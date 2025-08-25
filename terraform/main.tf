@@ -31,21 +31,21 @@ resource "aws_vpc" "this" {
 }  
 
 resource "aws_subnet" "public_1" {
-  vpc_id = aws_vpc.this.id
-  cidr_block = local.public_subnet_cidrs[0]
-  availability_zone = local.azs[0]
-  map_customer_owned_ip_on_launch = true
+    vpc_id = aws_vpc.this.id
+    cidr_block = local.public_subnet_cidrs[0]
+    availability_zone = local.azs[0]
+    map_public_ip_on_launch = true
 
-  tags = {
-    Name = "${local.name_prefix}-public-1"
-  }
+    tags = {
+        Name = "${local.name_prefix}-public-1"
+    }
 }
 
 resource "aws_subnet" "public_2" {
     vpc_id = aws_vpc.this.id
     cidr_block = local.public_subnet_cidrs[1]
     availability_zone = local.azs[1]
-    map_customer_owned_ip_on_launch = true
+    map_public_ip_on_launch = true
     tags = {
         Name = "${local.name_prefix}-public-2"
     }   
