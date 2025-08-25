@@ -2,15 +2,14 @@ name: CD - Terraform
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
     paths:
       - 'terraform/**'
       - 'infra/terraform/**'
-  workflow_dispatch: {}   # allow manual runs after edits
+  workflow_dispatch: {}
 
 permissions:
-  id-token: write   # required for OIDC
+  id-token: write   # <-- REQUIRED for OIDC
   contents: read
 
 jobs:
@@ -19,15 +18,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Optional one-time debug if OIDC fails:
-      # - name: Inspect OIDC token claims (temp)
-      #   uses: actions/github-script@v7
-      #   with:
-      #     script: |
-      #       const token = await core.getIDToken('sts.amazonaws.com');
-      #       const claims = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-      #       core.info(`sub=${claims.sub}`);
-      #       core.info(`job_workflow_ref=${claims.job_workflow_ref}`);
+      # TEMP: print the token's claims once so we can tighten the trust later
+      - name: Inspect OIDC token claims (temp)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const token = await core.getIDToken('sts.amazonaws.com');
+            const claims = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+            core.info(`sub=${claims.sub}`);
+            core.info(`job_workflow_ref=${claims.job_workflow_ref}`);
 
       - name: Configure AWS (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -53,43 +52,5 @@ jobs:
           path: |
             terraform/tfplan.binary
             terraform/tfplan.txt
-
-      - name: Summary (preview)
-        run: |
-          {
-            echo "## Terraform Plan Preview"
-            echo
-            echo '```diff'
-            sed -n '1,400p' terraform/tfplan.txt
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  apply:
-    needs: plan
-    runs-on: ubuntu-latest
-    environment: dev   # requires your approval before this job starts
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure AWS (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}   # from the 'dev' environment
-          aws-region:     ${{ vars.AWS_REGION }}     # from the 'dev' environment
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Download plan artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan
-          path: terraform
-
-      - name: Terraform Init
-        run: terraform -chdir=terraform init -input=false
-
-      - name: Terraform Apply (from approved plan)
-        run: terraform -chdir=terraform apply -input=false -auto-approve tfplan.binary
 
 
