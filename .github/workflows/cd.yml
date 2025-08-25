@@ -1,39 +1,83 @@
-name: Terraform Deploy
+name: CD - Terraform
 
 on:
-  workflow_run:
-    workflows: ["Terraform CI"]
-    types: [completed]
+  push:
     branches: [ main ]
+    paths:
+      - 'terraform/**'
+      - 'infra/terraform/**'
 
 permissions:
-  id-token: write
+  id-token: write   # required for OIDC
   contents: read
 
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+
 jobs:
-  deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  plan:
     runs-on: ubuntu-latest
-    environment: dev   # <-- requires your approval in the Environment
     steps:
       - uses: actions/checkout@v4
-        with:
-          # Apply the exact commit that just passed CI
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Configure AWS (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::924917171175:role/GitHubActionsTerraformK8sObs
-          aws-region: us-east-1
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        run: terraform -chdir=terraform init
+        run: terraform -chdir=terraform init -input=false
 
-      # Optional: re-run plan to show it in this job's logs too
-      - name: Terraform Plan (for visibility)
-        run: terraform -chdir=terraform plan -input=false
+      - name: Terraform Plan (create artifact)
+        run: |
+          terraform -chdir=terraform plan -input=false -out=tfplan.binary
+          terraform -chdir=terraform show -no-color tfplan.binary > tfplan.txt
 
-      # Apply runs only after you click "Approve and deploy" for environment 'dev'
-      - name: Terraform Apply
-        run: terraform -chdir=terraform apply -auto-approve -input=false
+      - name: Upload plan artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: |
+            terraform/tfplan.binary
+            terraform/tfplan.txt
+
+      - name: Summary (preview)
+        run: |
+          echo "## Terraform Plan Preview" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`diff" >> $GITHUB_STEP_SUMMARY
+          sed -n '1,400p' terraform/tfplan.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  apply:
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: dev   # <-- requires your approval before this job starts
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}   # from the 'dev' environment
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Download plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: terraform
+
+      - name: Terraform Init
+        run: terraform -chdir=terraform init -input=false
+
+      - name: Terraform Apply (from approved plan)
+        run: terraform -chdir=terraform apply -input=false -auto-approve tfplan.binary
