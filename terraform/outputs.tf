@@ -36,3 +36,8 @@ output "private_subnet_ids" {
   description = "Private Subnet IDs"
   value = [aws_subnet.private_1.id, aws_subnet.private_2.id]
 }
+
+output "public_route_table_id" {
+  value       = aws_route_table.public.id
+  description = "Public route table ID"
+}
