@@ -54,3 +54,30 @@ jobs:
             terraform/tfplan.txt
 
 
+  apply:
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: dev   # <-- this creates the pending deployment that you must approve
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}   # from the 'dev' environment
+          aws-region:     ${{ vars.AWS_REGION }}     # from the 'dev' environment
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Download plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: terraform
+
+      - name: Terraform Init
+        run: terraform -chdir=terraform init -input=false
+
+      - name: Terraform Apply (from approved plan)
+        run: terraform -chdir=terraform apply -input=false -auto-approve tfplan.binary
