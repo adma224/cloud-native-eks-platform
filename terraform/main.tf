@@ -25,8 +25,19 @@ module "vpc" {
 module "k8" {
   source = "./modules/k8"
 
-  cluster_name        = var.cluster_name
-  vpc_id              = module.vpc.vpc_id
-  public_subnet_ids   = module.vpc.public_subnet_ids
-  private_subnet_ids  = module.vpc.private_subnet_ids
+  # cluster basics
+  cluster_name       = var.cluster_name
+  kubernetes_version = var.kubernetes_version
+
+  # network
+  vpc_id             = module.vpc.vpc_id
+  public_subnet_ids  = module.vpc.public_subnet_ids
+  private_subnet_ids = module.vpc.private_subnet_ids
+
+  # nodegroup sizing
+  node_instance_type = var.node_instance_type
+  node_desired_size  = var.node_desired_size
+  node_min_size      = var.node_min_size
+  node_max_size      = var.node_max_size
 }
+

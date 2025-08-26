@@ -34,3 +34,28 @@ variable "cluster_name" {
   type    = string
   default = "obs-eks-dev"
 }
+
+variable "kubernetes_version" {
+  type = string
+  default = "1.30"
+}
+
+variable "node_instance_type" {
+  type = string
+  default = "t2.micro"
+}
+
+variable "node_desired_size" {
+  type = number
+  default = 2
+}
+
+variable "node_max_size" {
+  type = number
+  default = 3
+}
+
+variable "node_min_size" {
+  type = number
+  default = 1
+}
