@@ -1,6 +1,8 @@
 # Terraform directories
-.terraform/
+terraform/.terraform/*
 .terraform.tfstate.lock.info
+terraform/.terraform.lock.hcl
+terraform/tfplan.binary
 
 # Local Terraform state
 *.tfstate

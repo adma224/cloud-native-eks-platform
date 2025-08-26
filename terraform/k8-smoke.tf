@@ -5,3 +5,4 @@ resource "kubernetes_namespace" "obs_system" {
   }
   depends_on = [module.k8]  # ensure cluster exists before talking to it
 }
+
