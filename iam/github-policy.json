@@ -1,0 +1,52 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3StateBucket",
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket", "s3:GetBucketLocation"],
+      "Resource": "arn:aws:s3:::org-adrian-aws-eks-app-platform-tfstate-924917171175"
+    },
+    {
+      "Sid": "S3StateObjects",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+      "Resource": [
+        "arn:aws:s3:::org-adrian-aws-eks-app-platform-tfstate-924917171175/dev/*",
+        "arn:aws:s3:::org-adrian-aws-eks-app-platform-tfstate-924917171175/terraform.tfstate"
+      ]
+    },
+    {
+      "Sid": "DDBStateLock",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem"
+      ],
+      "Resource": "arn:aws:dynamodb:us-east-1:924917171175:table/org-adrian-aws-eks-app-platform-tflock"
+    },
+    {
+      "Sid": "EC2BroadForMVP",
+      "Effect": "Allow",
+      "Action": "ec2:*",
+      "Resource": "*",
+      "Condition": { "StringEquals": { "aws:RequestedRegion": "us-east-1" } }
+    },
+    {
+      "Sid": "EKSBroadForMVP",
+      "Effect": "Allow",
+      "Action": "eks:*",
+      "Resource": "*",
+      "Condition": { "StringEquals": { "aws:RequestedRegion": "us-east-1" } }
+    },
+    {
+      "Sid": "IAMBroadForMVP",
+      "Effect": "Allow",
+      "Action": "iam:*",
+      "Resource": "*"
+    }
+  ]
+}
