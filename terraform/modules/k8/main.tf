@@ -41,6 +41,22 @@ resource "aws_eks_cluster" "this" {
   ]
 }
 
+# Fetch the EKS OIDC issuer certificate
+data "tls_certificate" "eks" {
+  url = aws_eks_cluster.this.identity[0].oidc[0].issuer
+}
+
+# Create the IAM OIDC provider for IRSA
+resource "aws_iam_openid_connect_provider" "eks" {
+  url = aws_eks_cluster.this.identity[0].oidc[0].issuer
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.tls_certificate.eks.certificates[0].sha1_fingerprint]
+
+  depends_on = [aws_eks_cluster.this]
+}
+
+
+
 
 ########################################
 # Managed node group (EC2, private)
