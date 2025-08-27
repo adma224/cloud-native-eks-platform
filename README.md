@@ -1,4 +1,4 @@
-# Terraform-Driven Kubernetes Platform on AWS with Secure CI/CD
+# Kubernetes Platform on AWS with Terraform and Secure CI/CD
 
 Flask App on EKS – Containerized Web Application Deployment  
 
