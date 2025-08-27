@@ -11,18 +11,16 @@ provider "aws" {
 
 provider "tls" {}
 
+# Discover the cluster connection details (plan-time friendly)
 data "aws_eks_cluster" "this" {
-  name       = module.k8.cluster_name
-  depends_on = [module.k8]
+  name = var.cluster_name
 }
 
-# Get a short-lived auth token for that cluster
 data "aws_eks_cluster_auth" "this" {
-  name       = module.k8.cluster_name
-  depends_on = [module.k8]
+  name = var.cluster_name
 }
 
-# Kubernetes provider wired to your EKS control plane
+# Kubernetes provider -> uses the live endpoint/CA/token
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.this.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)

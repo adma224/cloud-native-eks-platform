@@ -3,6 +3,5 @@ resource "kubernetes_namespace" "obs_system" {
     name = "obs-system"
     labels = { project = var.project, env = var.env }
   }
-  depends_on = [module.k8]  # ensure cluster exists before talking to it
+  depends_on = [module.k8]  # ensure cluster update finishes before creating the ns
 }
-
