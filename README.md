@@ -1,14 +1,8 @@
 # Terraform-Driven Kubernetes Platform on AWS with Secure CI/CD
 
 Flask App on EKS – Containerized Web Application Deployment  
-This project provisions a production-style Amazon EKS cluster using Terraform and deploys a containerized Flask web app through a GitHub Actions pipeline. It demonstrates secure CI/CD with OpenID Connect (OIDC), automated VPC networking, and application delivery with Kubernetes, with logs streaming into CloudWatch for visibility.
 
----
-
-## Project Description
-This project showcases a production-style Kubernetes infrastructure built on AWS, emphasizing automation and security. A fully automated Terraform setup provisions the VPC (public/private subnets, NAT, IGW) and an Amazon EKS cluster in EC2 Auto Mode. The CI/CD pipeline, powered by GitHub Actions and OIDC, securely assumes AWS roles without long-lived credentials.  
-
-The platform demonstrates containerized application delivery: a Flask web app is built, pushed to Amazon ECR, and deployed onto EKS with Kubernetes manifests. The cluster is network-ready for real-world workloads, with application logs available in Amazon CloudWatch for inspection and debugging.
+This project provisions an Amazon EKS cluster using Terraform and deploys a containerized web app through a GitHub Actions pipeline. It uses secure CI/CD with OpenID Connect (OIDC) and logs streaming into CloudWatch for visibility.
 
 ---
 
@@ -57,3 +51,18 @@ The platform demonstrates containerized application delivery: a Flask web app is
 - **Phase 3 (current):** Flask app containerized, built with CI, pushed to ECR, and deployed on EKS.  
 
 ---
+
+## Validate local kubectl access
+
+**Prereqs:** AWS CLI v2 and kubectl installed; your IAM principal granted cluster access (EKS → Access → ClusterAdmin).
+
+```bash
+# Configure kubeconfig for this cluster
+aws eks update-kubeconfig --region us-east-1 --name obs-eks-dev
+
+# Confirm connectivity to the API
+kubectl cluster-info
+
+# Verify worker nodes are Ready (should be 2)
+kubectl wait node --all --for=condition=Ready --timeout=10m
+kubectl get nodes -o wide
