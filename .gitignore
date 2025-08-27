@@ -30,3 +30,7 @@ terraform.rc
 *.swp
 *.swo
 .DS_Store
+
+
+awscliv2.zip
+aws/*
