@@ -34,6 +34,12 @@ resource "aws_eks_cluster" "this" {
     endpoint_public_access  = true
     endpoint_private_access = false
   }
+
+  access_config {
+    authentication_mode = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = true
+  }
+
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
   depends_on = [
     aws_iam_role_policy_attachment.cluster_policy,
@@ -112,3 +118,4 @@ resource "aws_eks_node_group" "default" {
     aws_eks_cluster.this
   ]
 }
+
