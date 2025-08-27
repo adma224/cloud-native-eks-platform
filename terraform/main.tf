@@ -29,6 +29,8 @@ module "k8" {
   cluster_name       = var.cluster_name
   kubernetes_version = var.kubernetes_version
 
+  admin_principals = var.eks_admin_principals
+
   # network
   vpc_id             = module.vpc.vpc_id
   public_subnet_ids  = module.vpc.public_subnet_ids

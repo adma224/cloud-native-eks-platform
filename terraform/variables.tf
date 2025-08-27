@@ -59,3 +59,13 @@ variable "node_min_size" {
   type = number
   default = 1
 }
+
+# Principals that should have cluster-admin in EKS via Access Entries
+variable "eks_admin_principals" {
+  type    = list(string)
+  default = [
+    "arn:aws:iam::924917171175:user/adrian_aws_2025",
+    "arn:aws:iam::924917171175:role/GitHubActionsTerraformK8sObs"
+  ]
+}
+

@@ -12,3 +12,7 @@ variable "node_instance_type" { type = string }
 variable "node_desired_size"  { type = number }
 variable "node_min_size"      { type = number }
 variable "node_max_size"      { type = number }
+
+variable "admin_principals" { type = list(string) }
+
+
