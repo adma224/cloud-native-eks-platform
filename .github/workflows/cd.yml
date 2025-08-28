@@ -84,7 +84,7 @@ jobs:
 
 
   test:
-    name: Post-deploy tests (EKS basics)
+    name: Tests
     needs: apply
     if: needs.apply.result == 'success'
     runs-on: ubuntu-latest
