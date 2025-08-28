@@ -88,12 +88,10 @@ jobs:
     needs: apply
     if: needs.apply.result == 'success'
     runs-on: ubuntu-latest
+    environment: dev         # <-- add this so ${{ vars.* }} resolves
     permissions:
       id-token: write
       contents: read
-    env:
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      ROLE_ARN:   ${{ vars.AWS_ROLE_ARN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -101,8 +99,8 @@ jobs:
       - name: Assume AWS role (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ env.ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}   # from 'dev' environment
+          aws-region:     ${{ vars.AWS_REGION }}     # from 'dev' environment
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -112,7 +110,6 @@ jobs:
 
       - name: Read Terraform outputs
         id: tfouts
-        shell: bash
         run: |
           set -euo pipefail
           CLUSTER_NAME=$(terraform -chdir=terraform output -raw cluster_name)
@@ -124,48 +121,38 @@ jobs:
           version: 'latest'
 
       - name: Check EKS cluster and nodegroup
-        shell: bash
         run: |
           set -euo pipefail
           CLUSTER="${{ steps.tfouts.outputs.cluster_name }}"
           STATUS=$(aws eks describe-cluster --name "$CLUSTER" --query 'cluster.status' --output text)
-          if [ "$STATUS" != "ACTIVE" ]; then
-            echo "Cluster status: $STATUS"; exit 1
-          fi
+          [ "$STATUS" = "ACTIVE" ] || { echo "Cluster status: $STATUS"; exit 1; }
 
           NG="${CLUSTER}-ng"
           NG_STATUS=$(aws eks describe-nodegroup --cluster-name "$CLUSTER" --nodegroup-name "$NG" --query 'nodegroup.status' --output text)
-          if [ "$NG_STATUS" != "ACTIVE" ]; then
-            echo "Nodegroup status: $NG_STATUS"; exit 1
-          fi
+          [ "$NG_STATUS" = "ACTIVE" ] || { echo "Nodegroup status: $NG_STATUS"; exit 1; }
 
       - name: Configure kubeconfig
-        run: aws eks update-kubeconfig --region "$AWS_REGION" --name "${{ steps.tfouts.outputs.cluster_name }}"
+        run: aws eks update-kubeconfig --region "${{ vars.AWS_REGION }}" --name "${{ steps.tfouts.outputs.cluster_name }}"
 
       - name: Wait for nodes Ready and list
-        shell: bash
         run: |
           set -euo pipefail
           kubectl wait node --all --for=condition=Ready --timeout=10m
           kubectl get nodes -o wide
 
       - name: Check CloudWatch log group exists
-        shell: bash
         run: |
           set -euo pipefail
           LG="/aws/eks/${{ steps.tfouts.outputs.cluster_name }}/cluster"
           COUNT=$(aws logs describe-log-groups --log-group-name-prefix "$LG" --query 'length(logGroups)' --output text)
-          if [ "$COUNT" -lt 1 ]; then
-            echo "Log group not found: $LG"; exit 1
-          fi
+          [ "$COUNT" -ge 1 ] || { echo "Log group not found: $LG"; exit 1; }
 
       - name: Summary
-        shell: bash
         run: |
           {
             echo "## Post-deploy checks"
             echo ""
             echo "- Cluster: ${{ steps.tfouts.outputs.cluster_name }}"
-            echo "- Region:  $AWS_REGION"
+            echo "- Region:  ${{ vars.AWS_REGION }}"
             echo "- Result:  OK"
           } >> "$GITHUB_STEP_SUMMARY"
