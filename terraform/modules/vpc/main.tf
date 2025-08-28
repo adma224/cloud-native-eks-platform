@@ -101,3 +101,40 @@ resource "aws_route_table_association" "private_2" {
   subnet_id      = aws_subnet.private_2.id
   route_table_id = aws_route_table.private.id
 }
+
+# ----- Private NACL (allow-all for MVP) -----
+resource "aws_network_acl" "private" {
+  vpc_id = aws_vpc.this.id
+  tags = { Name = "${var.name_prefix}-private-nacl" }
+}
+
+# Inbound: allow all
+resource "aws_network_acl_rule" "private_ingress_all" {
+  network_acl_id = aws_network_acl.private.id
+  rule_number    = 100
+  egress         = false
+  protocol       = "-1"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+}
+
+# Outbound: allow all
+resource "aws_network_acl_rule" "private_egress_all" {
+  network_acl_id = aws_network_acl.private.id
+  rule_number    = 100
+  egress         = true
+  protocol       = "-1"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+}
+
+# Associate BOTH private subnets to this NACL
+resource "aws_network_acl_association" "private_1" {
+  subnet_id      = aws_subnet.private_1.id
+  network_acl_id = aws_network_acl.private.id
+}
+
+resource "aws_network_acl_association" "private_2" {
+  subnet_id      = aws_subnet.private_2.id
+  network_acl_id = aws_network_acl.private.id
+}
