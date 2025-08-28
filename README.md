@@ -8,9 +8,9 @@ This project provisions an Amazon EKS cluster using Terraform and deploys a cont
 
 AWS Infrastructure Diagram – Project Roadmap (Currently on Phase 3)
 
-[AWS Infrastructure Diagram](https://github.com/adma224/cloud-native-eks-platform/blob/main/diagrams/EKS-project.png) - [Project Roadmap (Currently on Phase 2)](https://github.com/adma224/cloud-native-eks-platform/wiki/Project-Roadmap)
+[AWS Infrastructure Diagram](https://github.com/adma224/cloud-native-eks-platform/blob/main/docs/diagrams/EKS-project.png) - [Project Roadmap (Currently on Phase 2)](https://github.com/adma224/cloud-native-eks-platform/wiki/Project-Roadmap)
 
-![Architecture Diagram](https://github.com/adma224/cloud-native-eks-platform/blob/main/diagrams/EKS-project.png)
+![Architecture Diagram](https://github.com/adma224/cloud-native-eks-platform/blob/main/docs/diagrams/EKS-project.png)
 
 ---
 
